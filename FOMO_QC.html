@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Framework Groceries PedidosYa - GIM Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+
+        .transition-all-700 { transition: all 700ms cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Ajuste de contraste: fondo más oscuro para que resalten las líneas blancas */
+        .quadrant-bg-red { background-color: rgba(239, 68, 68, 0.15); }
+        .quadrant-bg-green { background-color: rgba(22, 163, 74, 0.25); }
+        
+        .dot-red { background-color: #dc2626; box-shadow: 0 0 15px rgba(220, 38, 38, 0.3); }
+        .dot-green { background-color: #16a34a; box-shadow: 0 0 15px rgba(22, 163, 74, 0.3); }
+
+        .active-tab-green { background-color: white; color: #16a34a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .active-tab-red { background-color: white; color: #dc2626; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .active-tab-blue { background-color: white; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-900">
+
+    <!-- Header -->
+    <header class="bg-white border-b px-6 py-4 flex flex-col md:flex-row justify-between items-center sticky top-0 z-50 gap-4 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-red-600 p-2 rounded-xl shadow-lg shadow-red-100 text-white">
+                <i data-lucide="shopping-basket" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight flex items-center gap-2">
+                    Grocery Matrix <span class="bg-gray-100 text-gray-400 text-[10px] px-2 py-0.5 rounded-full font-bold">V2.0</span>
+                </h1>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Groceries Framework • PedidosYa</p>
+            </div>
+        </div>
+        <div class="flex bg-gray-100 p-1 rounded-xl" id="tab-container">
+            <button onclick="setActiveTab('identity')" id="tab-identity" class="tab-btn px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-400">Identidad</button>
+            <button onclick="setActiveTab('interpellation')" id="tab-interpellation" class="tab-btn px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-400">Interpelación</button>
+            <button onclick="setActiveTab('postsale')" id="tab-postsale" class="tab-btn px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-400">Post-Venta</button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto w-full">
+        
+        <!-- Left: Interactive Controls -->
+        <div class="lg:col-span-3 flex flex-col gap-6">
+            <section class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full">
+                <div class="flex items-center gap-2 mb-6">
+                    <i data-lucide="zap" class="w-5 h-5 text-amber-500 fill-amber-500"></i>
+                    <h2 class="font-black text-sm uppercase tracking-wider text-gray-700">Explorador</h2>
+                </div>
+                
+                <div class="space-y-8 flex-1">
+                    <!-- Axis AF -->
+                    <div>
+                        <div class="flex justify-between text-[10px] font-black mb-3 uppercase text-gray-400 tracking-widest">
+                            <span>Agresividad vs Fricción</span>
+                        </div>
+                        <div id="map-af" class="relative h-56 w-full quadrant-bg-red rounded-[2rem] border-2 border-gray-100 cursor-crosshair overflow-hidden shadow-inner select-none">
+                            <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                                <div class="border-r-2 border-b-2 border-white"></div>
+                                <div class="border-b-2 border-white"></div>
+                                <div class="border-r-2 border-white"></div>
+                            </div>
+                            <div class="absolute bottom-2 left-0 right-0 text-center text-[9px] font-black text-gray-300 uppercase tracking-widest pointer-events-none">Agresividad</div>
+                            <div class="absolute top-0 bottom-0 left-2 flex items-center text-[9px] font-black text-gray-300 uppercase tracking-widest pointer-events-none [writing-mode:vertical-lr] rotate-180">Fricción</div>
+                            <div id="dot-af" class="absolute w-6 h-6 dot-red rounded-full border-4 border-white shadow-xl -ml-3 -mb-3 transition-all-700 pointer-events-none"></div>
+                        </div>
+                    </div>
+
+                    <!-- Axis CI -->
+                    <div>
+                        <div class="flex justify-between text-[10px] font-black mb-3 uppercase text-gray-400 tracking-widest">
+                            <span>Complejidad vs Impacto</span>
+                        </div>
+                        <div id="map-ci" class="relative h-56 w-full quadrant-bg-green rounded-[2rem] border-2 border-gray-100 cursor-crosshair overflow-hidden shadow-inner select-none">
+                            <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                                <div class="border-r-2 border-b-2 border-white"></div>
+                                <div class="border-b-2 border-white"></div>
+                                <div class="border-r-2 border-white"></div>
+                            </div>
+                            <div class="absolute bottom-2 left-0 right-0 text-center text-[9px] font-black text-gray-300 uppercase tracking-widest pointer-events-none font-bold">Complejidad</div>
+                            <div class="absolute top-0 bottom-0 left-2 flex items-center text-[9px] font-black text-gray-300 uppercase tracking-widest pointer-events-none [writing-mode:vertical-lr] rotate-180 font-bold">Impacto</div>
+                            <div id="dot-ci" class="absolute w-6 h-6 dot-green rounded-full border-4 border-white shadow-xl -ml-3 -mb-3 transition-all-700 pointer-events-none"></div>
+                        </div>
+                    </div>
+                </div>
+		<!--
+                <div class="mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Status</p>
+                    <p class="text-xs text-gray-500 leading-relaxed italic">Ajusta los cuadrantes para ver qué iniciativa encaja mejor con los objetivos actuales.</p>
+                </div>
+		-->
+            </section>
+        </div>
+
+        <!-- Center: Detail View -->
+        <div class="lg:col-span-6 flex flex-col">
+            <div id="detail-card" class="flex-1 rounded-[2.5rem] shadow-xl border-4 overflow-hidden transition-all duration-500 bg-white">
+                <!-- Project Header -->
+                <div id="detail-header" class="p-10 transition-colors duration-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="pilar-tag" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-white shadow-sm">
+                            PILAR
+                        </span>
+                        <div id="tag-container" class="flex gap-2"></div>
+                    </div>
+                    <h3 id="detail-name" class="text-4xl font-black text-gray-900 mb-4 leading-tight">Cargando...</h3>
+                    <p id="detail-desc" class="text-gray-600 text-lg leading-relaxed font-medium mb-4">Cargando descripción...</p>
+                    <!-- Nueva sección de descripción extendida -->
+                    <p id="detail-extended" class="text-gray-500 text-sm leading-relaxed border-l-2 border-gray-200 pl-4"></p>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-10 grid grid-cols-1 md:grid-cols-2 gap-10 bg-white">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
+                            <i data-lucide="maximize-2" class="w-4 h-4"></i> Representación Visual
+                        </div>
+                        <div class="aspect-[4/3] bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 flex items-center justify-center p-8 text-center shadow-inner relative">
+                            <i data-lucide="sparkles" id="sparkle-icon" class="absolute top-4 right-4 w-6 h-6 opacity-20"></i>
+                            <p id="detail-visual" class="text-sm text-gray-600 italic font-bold leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
+                            <i data-lucide="layout" class="w-4 h-4"></i> Parámetros
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-3xl space-y-5" id="scorecard">
+                            <!-- Meters added by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Bar -->
+                <div class="p-8 border-t bg-gray-50 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div id="strategy-icon-box" class="p-4 rounded-2xl bg-white shadow-sm border">
+                            <i data-lucide="target" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Foco Estratégico</p>
+                            <p id="pilar-subtitle" class="text-sm font-bold text-gray-800">Cargando...</p>
+                        </div>
+                    </div>
+                    <!--
+		    <button class="px-8 py-3 rounded-2xl font-black text-sm shadow-lg shadow-gray-200 transition-all active:scale-95 flex items-center gap-3 bg-white border border-gray-100 hover:border-gray-500">
+                        Siguiente Paso <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+ 		    -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Initiatives List -->
+        <div class="lg:col-span-3 h-full">
+            <section class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-full flex flex-col max-h-[85vh]">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="list-filter" class="w-5 h-5 text-gray-400"></i>
+                        <h2 class="font-black text-sm uppercase tracking-wider text-gray-700">Iniciativas</h2>
+                    </div>
+                    <span id="gallery-count" class="bg-gray-100 text-gray-500 text-[10px] font-black px-2 py-1 rounded-md">0 ITEMS</span>
+                </div>
+
+                <div id="gallery-list" class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                    <!-- Buttons added by JS -->
+                </div>
+		<!--
+                <div class="mt-6 pt-4 border-t border-gray-50">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase text-center leading-relaxed">Haz clic para posicionar la matriz</p>
+                </div>
+		 -->
+            </section>
+        </div>
+    </main>
+
+    <footer class="px-6 py-4 bg-white border-t flex justify-center text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">
+        Groceries Developement Framework • PedidosYa • 2026
+    </footer>
+
+    <script>
+        const data = {
+            identity: {
+                title: "Identidad",
+                subtitle: "Awareness y Posicionamiento",
+                color: "text-green-600",
+                bg: "bg-green-50",
+                border: "border-green-200",
+                accent: "green",
+                initiatives: [
+                    { id: "chip", name: "Modificación de Entry Point (Groceries en Home)", desc: "Reflejar la nueva sección de Groceries directamente en el punto de entrada principal.", extended: "Esta iniciativa busca que el usuario identifique instantáneamente la vertical de mercado mediante un cambio en la jerarquía visual de los chips de la Home. No es solo un cambio de icono, sino una modificación del comportamiento del Entry Point para destacar la propuesta de valor fresca.", visual: "Botón 'Groceries' resaltado con un color diferencial y un badge dinámico de promociones.", params: { ag: 20, fr: 10, cp: 20, im: 85 }, tags: ["Acceso Directo", "Awareness"] },
+                    { id: "tab", name: "Rediseño de Identidad de QC a Groceries en Home de QC", desc: "Adaptación del lenguaje visual de Quick Commerce hacia una estética puramente de Groceries.", extended: "Reemplazamos los elementos genéricos de conveniencia por elementos que evocan frescura y stock de supermercado. El objetivo es que la 'Home de QC' sea percibida como una sucursal digital de un supermercado premium, mejorando la confianza en la compra de frescos.", visual: "Layout con secciones temáticas (Carnicería, Panadería) y paleta de verdes orgánicos.", params: { ag: 50, fr: 25, cp: 90, im: 95 }, tags: ["Re-branding", "Core UX"] },
+                    { id: "hero", name: "Themed Hero Banner", desc: "Banner central de alto impacto centrado en la vertical de Groceries.", extended: "Utilizamos el espacio de mayor tráfico para comunicar ofertas semanales de mercado. Este banner debe actuar como el escaparate principal, rotando productos gancho que atraigan al usuario de comida preparada hacia la compra de ingredientes.", visual: "Gráfica 3D de alta calidad con productos de temporada y call-to-action directo.", params: { ag: 40, fr: 15, cp: 45, im: 70 }, tags: ["Marketing", "Visual"] },
+                    { id: "icons", name: "Category Icon Redesign", desc: "Evolución de los iconos de categorías para reflejar realismo y frescura.", extended: "Los iconos dejan de ser planos para tener texturas y sombreados que remiten a productos reales del súper. Este cambio sutil pero constante refuerza la identidad visual de Groceries en cada rincón de la app.", visual: "Set de iconos con acabado glossy y detalles fotorealistas de frutas y verduras.", params: { ag: 10, fr: 5, cp: 30, im: 35 }, tags: ["UI Minor", "Sutileza"] },
+                    { id: "fab", name: "App-wide Grocery FAB", desc: "Botón flotante persistente para acceso rápido al carrito de mercado.", extended: "Permite al usuario saltar de cualquier sección a su lista de compras de Groceries. Es una herramienta de utilidad pura que reduce los pasos para finalizar una compra de mercado que haya quedado pendiente.", visual: "Botón circular verde con contador de items que flota en la esquina inferior.", params: { ag: 65, fr: 40, cp: 50, im: 60 }, tags: ["Utility", "Quick Access"] },
+                    { id: "search", name: "Search Bar Suggestion", desc: "Placeholder dinámico para guiar la búsqueda hacia Groceries.", extended: "Modifica el comportamiento del buscador global para sugerir términos relacionados con mercado cuando el usuario está navegando por otras secciones, plantando la semilla de la existencia de la vertical.", visual: "Texto animado que sugiere 'Busca Quesos o Vinos' en la barra de búsqueda.", params: { ag: 15, fr: 5, cp: 40, im: 45 }, tags: ["UX Copy", "Discovery"] }
+                ]
+            },
+            interpellation: {
+                title: "Interpelación",
+                subtitle: "Nudges Contextuales",
+                color: "text-red-600",
+                bg: "bg-red-50",
+                border: "border-red-200",
+                accent: "red",
+                initiatives: [
+                    { id: "recipe", name: "Feature QC Recetas / Ingredientes", desc: "Traer al frente funcionalidades de recetas para conectar la intención de comida con la compra.", extended: "Cuando el usuario busca un tipo de comida, ofrecemos la opción de 'Cocinarlo tú mismo'. Esto vincula la necesidad inmediata de alimentación con la vertical de Groceries mediante una solución de valor: el kit de ingredientes.", visual: "Banner interactivo: '¿Prefieres cocinar? Mira esta receta de Pasta' con botón 'Comprar Ingredientes'.", params: { ag: 60, fr: 30, cp: 85, im: 80 }, tags: ["E-commerce", "Inspiración"] },
+                    { id: "flash", name: "Flash o Scarce Promo (Tiempo/Stock)", desc: "Promociones agresivas limitadas para forzar la conversión inmediata.", extended: "Estrategia de urgencia pura basada en escasez de stock o tiempo. Ideal para productos de alta rotación (bebidas, snacks). El usuario siente que si no actúa ahora, pierde una oportunidad única de ahorro en Groceries.", visual: "Widget con barra de stock bajando en tiempo real y cronómetro de cuenta regresiva.", params: { ag: 95, fr: 85, cp: 30, im: 90 }, tags: ["FOMO", "Agresividad"] },
+                    { id: "interrupt", name: "Banners de Interrupción en otras secciones", desc: "Puntos de contacto disruptivos fuera del flujo natural de mercado.", extended: "Insertamos recordatorios de Groceries en el flujo de Restaurantes o Farmacias. Buscamos 'interrumpir' el modelo mental del usuario para recordarle que puede solucionar su mercado en la misma sesión de uso.", visual: "Card horizontal con diseño disruptivo que rompe el patrón de scroll de restaurantes.", params: { ag: 40, fr: 15, cp: 50, im: 60 }, tags: ["Cross-sell", "Visibility"] },
+                    { id: "welcome", name: "Modal de Bienvenida", desc: "Primer contacto invasivo para nuevos usuarios o primera visita a la sección.", extended: "Un onboarding rápido que explica las ventajas de Groceries (envío rápido, selección premium) junto con un incentivo de primer uso. Asegura que el usuario entienda el valor diferencial desde el segundo cero.", visual: "Modal centrado con ilustración hero y botón 'Empezar a comprar'.", params: { ag: 80, fr: 70, cp: 60, im: 85 }, tags: ["Onboarding", "Incentivo"] },
+                    { id: "abandon", name: "Cart Abandonment Push", desc: "Recordatorio de carrito lleno para recuperar ventas perdidas.", extended: "Utiliza el push para re-interpelar al usuario cuando ha dejado productos en el carrito de Groceries. Es una técnica de retención clásica que ataca la distracción del usuario durante el flujo de compra.", visual: "Notificación: 'Tus productos frescos te esperan. ¡No los dejes ir!'", params: { ag: 70, fr: 50, cp: 80, im: 55 }, tags: ["Retención", "Push"] },
+                    { id: "progress", name: "Checkout Progress Nudge", desc: "Barra de progreso para gamificar el aumento del ticket promedio.", extended: "Durante el checkout, mostramos cuánto le falta al usuario para desbloquear beneficios (Envío gratis, Regalo). Incita a volver a la sección de Groceries para añadir un último item.", visual: "Barra de llenado verde: 'Añade un producto más y el envío es GRATIS'.", params: { ag: 30, fr: 20, cp: 55, im: 65 }, tags: ["Gamificación", "AOV"] }
+                ]
+            },
+            postsale: {
+                title: "Post-Venta",
+                subtitle: "Eficiencia y Recurrencia",
+                color: "text-blue-600",
+                bg: "bg-blue-50",
+                border: "border-blue-200",
+                accent: "blue",
+                initiatives: [
+                    { id: "coupon", name: "Concatenar compras con FOMO por cupones", desc: "Vincular una compra realizada con un beneficio inmediato para Groceries.", extended: "Al finalizar un pedido de comida, entregamos un cupón de un solo uso válido solo por los próximos 15 minutos en Groceries. Creamos un túnel de conversión inmediata aprovechando que el usuario sigue con el dispositivo en la mano.", visual: "Ticket digital con contador regresivo: 'Cupón de $200 para el Súper: Vence en 14:59'.", params: { ag: 85, fr: 65, cp: 40, im: 85 }, tags: ["Conversión", "Urgencia"] },
+                    { id: "wait", name: "While You Wait Bundle", desc: "Aprovechar el tiempo de preparación de comida para sumar productos de mercado.", extended: "Mientras el restaurante prepara el pedido, el usuario ve una selección de 'Olvidos Comunes'. Sumar estos productos no añade costo de envío, optimizando la logística y aumentando el AOV por sesión.", visual: "Widget en tracking: '¿Olvidaste la bebida? Tu rider puede traerla sin costo extra'.", params: { ag: 55, fr: 20, cp: 95, im: 85 }, tags: ["Logística", "Upsell"] },
+                    { id: "pantry", name: "Pantry Check Confirmation", desc: "Convertir la satisfacción de comida en prevención para el hogar.", extended: "Tras una compra exitosa, interpelamos al usuario sobre sus necesidades futuras. Es un nudge psicológico que posiciona a Groceries como el socio para el 'mañana', no solo para el 'ahora'.", visual: "Ilustración: 'Cena en camino. ¿Cómo está tu stock de café para mañana?'", params: { ag: 75, fr: 60, cp: 30, im: 50 }, tags: ["Predictivo", "Hábito"] },
+                    { id: "push", name: "Efficiency Push", desc: "Notificación de optimización de entrega basada en geolocalización.", extended: "Aviso al usuario de que hay un rider de Súper cerca de su zona, ofreciendo una ventana de envío express si pide en ese momento. Vende eficiencia y velocidad extrema.", visual: "Push: 'Rider en tu zona. Pide ahora en Groceries y recibe en menos de 10 min'.", params: { ag: 90, fr: 70, cp: 45, im: 40 }, tags: ["Operaciones", "Velocidad"] },
+                    { id: "loyalty", name: "Grocery Loyalty Points", desc: "Programa de puntos exclusivo para compras en la vertical de mercado.", extended: "Incentivamos la recurrencia mediante la acumulación de beneficios que solo se pueden canjear en Groceries. Crea una barrera de salida y fomenta que el usuario elija nuestra plataforma para su compra semanal.", visual: "Contador de puntos con barra de nivel y premios desbloqueables.", params: { ag: 20, fr: 30, cp: 70, im: 60 }, tags: ["Fidelización", "Largo Plazo"] },
+                    { id: "smart", name: "Smart Grocery Reminders", desc: "Recordatorios basados en la frecuencia de compra previa.", extended: "Análisis de data para predecir cuándo el usuario se quedará sin básicos. Un recordatorio amable en el momento justo reduce la fricción de la lista de compras y asegura la lealtad a la vertical.", visual: "Banner: 'Parece que es hora de reponer la leche. ¡Añádela con un toque!'", params: { ag: 35, fr: 25, cp: 80, im: 55 }, tags: ["Personalización", "Data"] }
+                ]
+            }
+        };
+
+        let activeTab = 'identity';
+        let axisAF = { x: 20, y: 20 };
+        let axisCI = { x: 20, y: 80 };
+        let selectedId = '';
+
+        lucide.createIcons();
+
+        function setActiveTab(tab) {
+            activeTab = tab;
+            renderAll();
+        }
+
+        function renderAll() {
+            updateTabs();
+            updateGallery();
+            calculateAndRenderSelected();
+        }
+
+        function updateTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-6 py-2 rounded-lg text-sm font-bold transition-all text-gray-400";
+            });
+            const activeBtn = document.getElementById(`tab-${activeTab}`);
+            activeBtn.classList.add(`active-tab-${data[activeTab].accent}`);
+            activeBtn.classList.remove('text-gray-400');
+        }
+
+        function calculateAndRenderSelected() {
+            const initiatives = data[activeTab].initiatives;
+            let bestMatch = initiatives[0];
+            let minDistance = Infinity;
+
+            initiatives.forEach(item => {
+                const dist = Math.sqrt(
+                    Math.pow(axisAF.x - item.params.ag, 2) +
+                    Math.pow(axisAF.y - item.params.fr, 2) +
+                    Math.pow(axisCI.x - item.params.cp, 2) +
+                    Math.pow(axisCI.y - item.params.im, 2)
+                );
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    bestMatch = item;
+                }
+            });
+
+            selectedId = bestMatch.id;
+            renderDetail(bestMatch);
+            renderGalleryActiveState();
+            updateDots();
+        }
+
+        function renderDetail(item) {
+            const pilar = data[activeTab];
+            const detailCard = document.getElementById('detail-card');
+            const detailHeader = document.getElementById('detail-header');
+            
+            detailCard.style.borderColor = getHexForAccent(pilar.accent);
+            detailHeader.className = `p-10 ${pilar.bg} transition-colors duration-500`;
+            
+            document.getElementById('pilar-tag').innerText = pilar.title;
+            document.getElementById('pilar-tag').className = `px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-white shadow-sm ${pilar.color}`;
+            
+            document.getElementById('detail-name').innerText = item.name;
+            document.getElementById('detail-desc').innerText = item.desc;
+            document.getElementById('detail-extended').innerText = item.extended || "";
+            document.getElementById('detail-visual').innerText = `"${item.visual}"`;
+            document.getElementById('pilar-subtitle').innerText = pilar.subtitle;
+            document.getElementById('sparkle-icon').className = `absolute top-4 right-4 w-6 h-6 opacity-20 ${pilar.color}`;
+            document.getElementById('strategy-icon-box').className = `p-4 rounded-2xl bg-white shadow-sm border ${pilar.color}`;
+
+            const tagContainer = document.getElementById('tag-container');
+            tagContainer.innerHTML = '';
+            item.tags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = "text-[9px] bg-black/5 text-gray-600 px-3 py-1 rounded-full font-bold uppercase tracking-tight";
+                span.innerText = tag;
+                tagContainer.appendChild(span);
+            });
+
+            const scorecard = document.getElementById('scorecard');
+            scorecard.innerHTML = '';
+            const paramsList = [
+                { label: 'Agresividad', val: item.params.ag, color: 'bg-red-500' },
+                { label: 'Fricción', val: item.params.fr, color: 'bg-orange-400' },
+                { label: 'Complejidad', val: item.params.cp, color: 'bg-blue-500' },
+                { label: 'Impacto', val: item.params.im, color: 'bg-green-500' }
+            ];
+            
+            paramsList.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "space-y-1.5";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                        <span>${p.label}</span>
+                        <span class="text-gray-900 font-black">${Math.round(p.val)}%</span>
+                    </div>
+                    <div class="h-2 w-full bg-white rounded-full border border-gray-100 overflow-hidden p-0.5">
+                        <div class="h-full ${p.color} rounded-full transition-all duration-1000 ease-out" style="width: ${p.val}%"></div>
+                    </div>
+                `;
+                scorecard.appendChild(div);
+            });
+        }
+
+        function updateGallery() {
+            const list = document.getElementById('gallery-list');
+            const pilar = data[activeTab];
+            list.innerHTML = '';
+            document.getElementById('gallery-count').innerText = `${pilar.initiatives.length} ITEMS`;
+
+            pilar.initiatives.forEach(item => {
+                const btn = document.createElement('button');
+                btn.id = `gal-${item.id}`;
+                btn.onclick = () => selectFromGallery(item);
+                btn.className = "gallery-item w-full text-left p-4 rounded-2xl transition-all border-2 group bg-gray-50 hover:bg-gray-100 border-transparent";
+                btn.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h4 class="item-name text-xs font-black uppercase tracking-tight text-gray-700">${item.name}</h4>
+                        <i data-lucide="mouse-pointer-2" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity ${pilar.color}"></i>
+                    </div>
+                    <p class="text-[10px] text-gray-500 font-medium line-clamp-1">${item.desc}</p>
+                    <div class="mt-3 flex gap-1">
+                        <div class="h-1 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full ${getBarColor(pilar.accent)}" style="width: ${item.params.im}%"></div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(btn);
+            });
+            lucide.createIcons();
+            renderGalleryActiveState();
+        }
+
+        function renderGalleryActiveState() {
+            const pilar = data[activeTab];
+            document.querySelectorAll('.gallery-item').forEach(btn => {
+                btn.className = "gallery-item w-full text-left p-4 rounded-2xl transition-all border-2 group bg-gray-50 hover:bg-gray-100 border-transparent";
+                btn.querySelector('.item-name').className = "item-name text-xs font-black uppercase tracking-tight text-gray-700";
+            });
+            
+            const activeBtn = document.getElementById(`gal-${selectedId}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'bg-gray-50');
+                activeBtn.classList.add(`border-${pilar.accent}-500`, pilar.bg);
+                activeBtn.querySelector('.item-name').classList.add(pilar.color);
+                activeBtn.querySelector('.item-name').classList.remove('text-gray-700');
+            }
+        }
+
+        function selectFromGallery(item) {
+            axisAF = { x: item.params.ag, y: item.params.fr };
+            axisCI = { x: item.params.cp, y: item.params.im };
+            calculateAndRenderSelected();
+        }
+
+        function updateDots() {
+            document.getElementById('dot-af').style.left = `${axisAF.x}%`;
+            document.getElementById('dot-af').style.bottom = `${axisAF.y}%`;
+            document.getElementById('dot-ci').style.left = `${axisCI.x}%`;
+            document.getElementById('dot-ci').style.bottom = `${axisCI.y}%`;
+        }
+
+        function setupMap(id, type) {
+            const map = document.getElementById(id);
+            let isDragging = false;
+
+            const updateFromEvent = (e) => {
+                const rect = map.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                let x = ((clientX - rect.left) / rect.width) * 100;
+                let y = 100 - ((clientY - rect.top) / rect.height) * 100;
+
+                x = Math.max(0, Math.min(100, x));
+                y = Math.max(0, Math.min(100, y));
+
+                if(type === 'af') axisAF = { x, y };
+                else axisCI = { x, y };
+                
+                calculateAndRenderSelected();
+            };
+
+            const start = (e) => {
+                isDragging = true;
+                updateFromEvent(e);
+            };
+
+            const stop = () => isDragging = false;
+            
+            const move = (e) => {
+                if(isDragging) updateFromEvent(e);
+            };
+
+            map.addEventListener('mousedown', start);
+            map.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }, {passive: false});
+            window.addEventListener('mousemove', move);
+            window.addEventListener('touchmove', (e) => { if(isDragging) e.preventDefault(); move(e); }, {passive: false});
+            window.addEventListener('mouseup', stop);
+            window.addEventListener('touchend', stop);
+        }
+
+        function getHexForAccent(accent) {
+            if(accent === 'green') return '#bbf7d0';
+            if(accent === 'red') return '#fecaca';
+            return '#bfdbfe';
+        }
+        function getBarColor(accent) {
+            if(accent === 'green') return 'bg-green-400';
+            if(accent === 'red') return 'bg-red-400';
+            return 'bg-blue-400';
+        }
+
+        setupMap('map-af', 'af');
+        setupMap('map-ci', 'ci');
+        renderAll();
+
+    </script>
+</body>
+</html>
